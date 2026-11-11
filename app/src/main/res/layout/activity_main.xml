@@ -10,7 +10,7 @@
         android:id="@+id/txtResult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tap an NFC tag"
+        android:text="Tap ticket to write"
         android:textSize="22sp"
         android:gravity="center" />
 
