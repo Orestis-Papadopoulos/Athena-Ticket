@@ -8,15 +8,19 @@ import android.nfc.Tag;
 import android.nfc.tech.NfcA;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
+    byte[] SECTOR_SELECT = { (byte) 0xc2, (byte) 0xff };
+    byte SECTOR_ONE = (byte) 0x01;
     byte PWD_AUTH_COMMAND_CODE_HEX = 0x1b;
     byte[] PWD = { (byte) 0x36, (byte) 0x8E, (byte) 0x3A, (byte) 0x24 };
     byte[][] COMMANDS_TO_WRITE_VERSION_MIFARE_ULTRALIGHT_EV1_128_BYTES = {
@@ -42,6 +46,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Prevent the screen from turning off, which immediately cuts NFC power
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         txtResult = findViewById(R.id.txtResult);
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -107,17 +114,9 @@ public class MainActivity extends Activity {
 
         byte[] uid = tag.getId();
         StringBuilder hex = new StringBuilder();
-        for (byte b : uid) {
-            hex.append(String.format("%02X ", b & 0xFF));
-        }
-//        notify(hex.toString().trim());
+        for (byte b : uid) hex.append(String.format("%02X ", b & 0xFF));
+        Log.d("Tag serial number", hex.toString());
 
-        // magic card does not get recognized as ultralight
-//        MifareUltralight mifare = MifareUltralight.get(tag);
-//        if (mifare == null) {
-//            notify("Not recognized as MIFARE Ultralight.");
-//            return;
-//        }
         NfcA mifare = NfcA.get(tag);
         if (mifare == null) {
             notify("Not recognized as NfcA tag.");
@@ -170,29 +169,21 @@ public class MainActivity extends Activity {
         };
 
 //        read_signature(mifare);
+//        write_address_value_to_page(mifare);
+//        sector_select(mifare);
 
 //        write_version_mifare_ultralight_ev1_128_bytes(mifare);
 //        write_signature(mifare, SIGNATURE);
 //        write_pwd(mifare, PWD);
-//        write_visible_pages(mifare, PWD, commands);
+        write_visible_pages(mifare, commands);
     }
 
-    private void write_visible_pages(NfcA mifare, byte[] PWD, byte[][] commands) {
+    private void write_visible_pages(NfcA mifare, byte[][] commands) {
         executor.execute(() -> {
             try {
                 mifare.connect();
                 mifare.setTimeout(5000);
                 String txt_response;
-
-                // authentication
-                byte[] PWD_AUTH = new byte[] {PWD_AUTH_COMMAND_CODE_HEX, PWD[0], PWD[1], PWD[2], PWD[3] };
-                try {
-                    mifare.transceive(PWD_AUTH);
-                } catch (Exception e){
-                    e.getMessage();
-                    txtResult.setText(R.string.ticket_authentication_failed);
-                    return;
-                }
 
                 // write
                 for (byte[] command : commands) {
@@ -326,6 +317,93 @@ public class MainActivity extends Activity {
                     mifare.close();
                 } catch (IOException ignored) {}
             }
+        });
+    }
+
+    private void write_address_value_to_page(NfcA mifare){
+        executor.execute(() -> {
+            try {
+                mifare.connect();
+                mifare.setTimeout(5000);
+                String txt_response;
+                for (int i = 0; i < 256; i++) {
+                    try {
+                        byte address = (byte) ((byte) i & 0xff); // make it unsigned
+                        byte[] command = { (byte) 0xa2, address, address, address, address, address};
+                        byte[] response = mifare.transceive(command);
+                        txt_response = toHex(response);
+                        txtResult.setText(txt_response);
+                        Log.d("WRITING ADDRESS", txt_response);
+                    } catch (IOException e) {
+                        txt_response = "Not supported or failed: " + e.getMessage();
+                        txtResult.setText(txt_response);
+                        Log.d("COULD NOT WRITE ADDRESS", txt_response);
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    mifare.close();
+                } catch (IOException ignored) {}
+            }
+        });
+    }
+
+    private void sector_select(NfcA mifare) {
+        byte[][] commands = {
+                SECTOR_SELECT,
+                { SECTOR_ONE, (byte) 0x00, (byte) 0x00, (byte) 0x00 },
+                { (byte) 0xa2, (byte) 0xe7, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x00 }, // write counters
+        };
+
+        executor.execute(() -> {
+            try {
+                mifare.connect();
+                // Set transceive timeout to 5000ms (5 seconds)
+                mifare.setTimeout(5000);
+
+                // Send your APDU commands sequentially without closing in between
+                byte[] response1 = mifare.transceive(commands[0]);
+
+                // Process response1, then send next command on the same open RF session
+                byte[] response2 = mifare.transceive(commands[1]);
+                byte[] response3 = mifare.transceive(commands[2]);
+
+                Log.d("response 1", toHex(response1));
+                Log.d("response 2", toHex(response2));
+                Log.d("response 3", toHex(response3));
+            } catch (IOException e) {
+                // Handle TagLostException or IO errors here
+                e.printStackTrace();
+            } finally {
+                try {
+                    // Only close the connection after ALL commands finish
+                    mifare.close();
+                } catch (IOException ignored) {}
+            }
+
+
+//            try {
+//                mifare.connect();
+//                mifare.setTimeout(5000);
+//                String txt_response;
+//                for (byte[] command : commands) {
+//                    try {
+//                        byte[] response = mifare.transceive(command);
+//                        txt_response = toHex(response);
+//                        Log.d("SECTOR SELECT", txt_response);
+//                    } catch (IOException e) {
+//                        Log.d("SECTOR SELECT", Objects.requireNonNull(e.getMessage()));
+//                    }
+//                }
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            } finally {
+//                try {
+//                    mifare.close();
+//                } catch (IOException ignored) {}
+//            }
         });
     }
 
