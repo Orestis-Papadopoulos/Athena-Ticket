@@ -22,7 +22,8 @@ public class MainActivity extends Activity {
     byte[] SECTOR_SELECT = { (byte) 0xc2, (byte) 0xff };
     byte SECTOR_ONE = (byte) 0x01;
     byte PWD_AUTH_COMMAND_CODE_HEX = (byte) 0x1b;
-    byte[] PWD = { (byte) 0x36, (byte) 0x8E, (byte) 0x3A, (byte) 0x24 };
+    byte PWD_ADDRESS = (byte) 0x27;
+    byte[] PWD = { (byte) 0xa1, (byte) 0x62, (byte) 0x46, (byte) 0x49 };
     byte WRITE_COMMAND_CODE_HEX = (byte) 0xa2;
 
     // for magic card: you need to write the version, signature, password
@@ -53,6 +54,11 @@ public class MainActivity extends Activity {
             { WRITE_COMMAND_CODE_HEX, (byte) 0xf7, SIGNATURE[20], SIGNATURE[21], SIGNATURE[22], SIGNATURE[23] },
             { WRITE_COMMAND_CODE_HEX, (byte) 0xf8, SIGNATURE[24], SIGNATURE[25], SIGNATURE[26], SIGNATURE[27] },
             { WRITE_COMMAND_CODE_HEX, (byte) 0xf9, SIGNATURE[28], SIGNATURE[29], SIGNATURE[30], SIGNATURE[31] },
+    };
+
+    byte[][] commands_to_change_password = {
+        { PWD_AUTH_COMMAND_CODE_HEX, (byte) 0x18, (byte) 0xa6, (byte) 0xc7, (byte) 0x50 },
+        { WRITE_COMMAND_CODE_HEX, PWD_ADDRESS, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff }
     };
 
     private NfcAdapter nfcAdapter;
@@ -147,36 +153,36 @@ public class MainActivity extends Activity {
                 { PWD_AUTH_COMMAND_CODE_HEX, PWD[0], PWD[1], PWD[2], PWD[3] },
                 { WRITE_COMMAND_CODE_HEX, (byte) 0x04 , (byte) 0x10, (byte) 0xA1, (byte) 0x4E, (byte) 0x65 },
                 { WRITE_COMMAND_CODE_HEX, (byte) 0x05 , (byte) 0x03, (byte) 0x0E, (byte) 0x00, (byte) 0x00 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x06 , (byte) 0x4B, (byte) 0x80, (byte) 0xE5, (byte) 0xD3 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x07 , (byte) 0x0A, (byte) 0x74, (byte) 0xB5, (byte) 0x4B },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x08 , (byte) 0x7A, (byte) 0x9C, (byte) 0xAD, (byte) 0x73 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x09 , (byte) 0x25, (byte) 0x2C, (byte) 0xD4, (byte) 0x26 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x0A , (byte) 0xB6, (byte) 0xEB, (byte) 0x1B, (byte) 0xD4 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x0B , (byte) 0x01, (byte) 0xC0, (byte) 0x4B, (byte) 0x50 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x0C , (byte) 0x84, (byte) 0x00, (byte) 0x00, (byte) 0x01 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x0D , (byte) 0x03, (byte) 0xEA, (byte) 0x04, (byte) 0x11 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x0E , (byte) 0x42, (byte) 0xA0, (byte) 0xE5, (byte) 0xD3 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x0F , (byte) 0x00, (byte) 0x01, (byte) 0x58, (byte) 0x42 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x10 , (byte) 0x00, (byte) 0x98, (byte) 0x98, (byte) 0x81 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x06 , (byte) 0x4B, (byte) 0x80, (byte) 0x86, (byte) 0x32 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x07 , (byte) 0xFF, (byte) 0x79, (byte) 0xEE, (byte) 0x1E },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x08 , (byte) 0xAD, (byte) 0x82, (byte) 0xE4, (byte) 0x55 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x09 , (byte) 0xF2, (byte) 0x20, (byte) 0x8A, (byte) 0x84 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x0A , (byte) 0x5C, (byte) 0xAC, (byte) 0xB0, (byte) 0x88 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x0B , (byte) 0x02, (byte) 0x40, (byte) 0x4B, (byte) 0x20 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x0C , (byte) 0x88, (byte) 0x00, (byte) 0x01, (byte) 0x01 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x0D , (byte) 0x03, (byte) 0xE9, (byte) 0x03, (byte) 0xF3 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x0E , (byte) 0x42, (byte) 0xF0, (byte) 0x86, (byte) 0x32 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x0F , (byte) 0x00, (byte) 0x00, (byte) 0x78, (byte) 0x42 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x10 , (byte) 0x00, (byte) 0x98, (byte) 0x96, (byte) 0x8A },
                 { WRITE_COMMAND_CODE_HEX, (byte) 0x11 , (byte) 0x00, (byte) 0x09, (byte) 0x00, (byte) 0x00 },
                 { WRITE_COMMAND_CODE_HEX, (byte) 0x12 , (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x13 , (byte) 0x42, (byte) 0xA0, (byte) 0xDD, (byte) 0xD3 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x14 , (byte) 0xA0, (byte) 0xDD, (byte) 0xD3, (byte) 0xA6 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x15 , (byte) 0xE3, (byte) 0x5E, (byte) 0x4F, (byte) 0x93 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x16 , (byte) 0x05, (byte) 0x60, (byte) 0xEF, (byte) 0x4D },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x17 , (byte) 0xC7, (byte) 0x13, (byte) 0xDF, (byte) 0x82 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x18 , (byte) 0x18, (byte) 0x6D, (byte) 0x48, (byte) 0xF1 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x19 , (byte) 0x6F, (byte) 0x89, (byte) 0xE6, (byte) 0x6A },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x1A , (byte) 0xE1, (byte) 0x55, (byte) 0x88, (byte) 0x12 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x1B , (byte) 0xB2, (byte) 0x40, (byte) 0x36, (byte) 0x91 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x1C , (byte) 0x56, (byte) 0x97, (byte) 0x31, (byte) 0x60 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x1D , (byte) 0x6F, (byte) 0x89, (byte) 0xE6, (byte) 0x6A },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x1E , (byte) 0xE1, (byte) 0x55, (byte) 0x88, (byte) 0x12 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x1F , (byte) 0xB2, (byte) 0x40, (byte) 0x36, (byte) 0x91 },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x20 , (byte) 0x56, (byte) 0x97, (byte) 0x31, (byte) 0x60 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x13 , (byte) 0x42, (byte) 0xF0, (byte) 0x80, (byte) 0x1D },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x14 , (byte) 0xF0, (byte) 0x80, (byte) 0x1D, (byte) 0x48 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x15 , (byte) 0xD8, (byte) 0x0E, (byte) 0xAE, (byte) 0x79 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x16 , (byte) 0xFE, (byte) 0xCF, (byte) 0x1B, (byte) 0x58 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x17 , (byte) 0x3F, (byte) 0x27, (byte) 0x8A, (byte) 0x73 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x18 , (byte) 0x4A, (byte) 0xA1, (byte) 0x2D, (byte) 0x86 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x19 , (byte) 0xA1, (byte) 0xA5, (byte) 0xAA, (byte) 0x72 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x1A , (byte) 0x13, (byte) 0x56, (byte) 0xA0, (byte) 0x88 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x1B , (byte) 0x42, (byte) 0x29, (byte) 0x2D, (byte) 0x37 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x1C , (byte) 0xD7, (byte) 0x1C, (byte) 0xBE, (byte) 0xA8 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x1D , (byte) 0xA1, (byte) 0xA5, (byte) 0xAA, (byte) 0x72 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x1E , (byte) 0x13, (byte) 0x56, (byte) 0xA0, (byte) 0x88 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x1F , (byte) 0x42, (byte) 0x29, (byte) 0x2D, (byte) 0x37 },
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x20 , (byte) 0xD7, (byte) 0x1C, (byte) 0xBE, (byte) 0xA8 },
                 { WRITE_COMMAND_CODE_HEX, (byte) 0x21 , (byte) 0x19, (byte) 0x04, (byte) 0x00, (byte) 0xE6 },
                 { WRITE_COMMAND_CODE_HEX, (byte) 0x22 , (byte) 0x42, (byte) 0xA2, (byte) 0x96, (byte) 0x0B },
-                { WRITE_COMMAND_CODE_HEX, (byte) 0x23 , (byte) 0x01, (byte) 0xA1, (byte) 0x34, (byte) 0x01 }
+                { WRITE_COMMAND_CODE_HEX, (byte) 0x23 , (byte) 0x01, (byte) 0xA1, (byte) 0x34, (byte) 0x01 },
         };
 
         // you can:
@@ -185,7 +191,7 @@ public class MainActivity extends Activity {
         // 3. write the password
         // 4. write the version of a magic card
         // 5. write to data pages (for ticket) or to the whole memory (for magic card)
-        execute_commands(mifare, commands_to_write_data_pages);
+        execute_commands(mifare, commands_to_change_password);
     }
 
     private void execute_commands(NfcA mifare, byte[][] commands) {
@@ -198,13 +204,14 @@ public class MainActivity extends Activity {
                     try {
                         byte[] response = mifare.transceive(command);
                         txt_response = toHex(response);
-                        txtResult.setText(txt_response);
+                        Log.d("Response", txt_response);
+                        txtResult.setText(R.string.data_written_successfully);
                     } catch (IOException e) {
                         txt_response = "Not supported or failed: " + e.getMessage();
-                        txtResult.setText(txt_response);
+                        Log.d("Error", txt_response);
+                        txtResult.setText(R.string.error_while_writing_data);
                     }
                 }
-
             } catch (IOException e) {
                 showResult("NFC error: " + e.getMessage());
             } finally {
